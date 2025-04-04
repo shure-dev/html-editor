@@ -1,0 +1,191 @@
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAZN Breaking News Banner</title>
+    <!-- Google Fonts Link -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (optional, if needed for utility classes, but primarily using custom CSS) -->
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <style>
+        /*
+        リーズニング:
+        - レイアウト戦略: バナー全体を左右2つのセクションに分割するFlexboxレイアウトを採用。左セクションはテキスト情報、右セクションは人物画像を表示。
+        - 左セクション: 縦方向のFlexboxを使用し、上部にロゴ、中央にニュースカテゴリと見出し、下部にソース情報を配置。`justify-content: space-between` で上下端に要素を配置し、中央の要素は自然な流れで配置。
+        - 右セクション: 人物画像を背景パターン（今回はプレースホルダーで代替）の上に重ねて表示。`position: absolute` と `z-index` を使用して重なり順を制御。
+        - サイジング: コンテナサイズは指定の 1010px x 1012px。内部要素のサイズ、マージン、パディングには vw, vh を使用し、コンテナサイズに対する相対的な比率を維持。フォントサイズも vh を使用。
+        - フォント: Google Fonts の 'Inter' を使用。太字 (bold, 900) と標準 (regular, 400) を使い分ける。
+        - 画像: placehold.co のプレースホルダーを使用し、alt属性に詳細を記述。ロゴには `object-fit: contain`、人物画像には `object-fit: cover` を使用。
+        - 図形/装飾: 'BREAKING NEWS' の背景はCSSの `background-color`, `padding`, `border-radius` で表現。左右セクション間の境界線は左セクションの `border-right` で表現。
+        - テキスト改行: 見出しテキストは左セクションの幅とフォントサイズ、行間で自然な改行を促し、元画像に近づける。`white-space: normal;` を適用。
+        - ID: 全ての主要なHTML要素に意味のあるIDを付与。
+        - コメント: HTML冒頭にレイアウトの意図を記述。
+        */
+
+        /*
+        レイアウト説明:
+        このバナーは、DAZNの速報ニュースを伝えるためのデザインです。
+        画面を左右に大胆に分割し、左側に情報を集約、右側にインパクトのある人物画像を配置しています。
+        左セクションは白に近い背景でクリーンな印象を与え、DAZNロゴ、黄色い背景の「BREAKING NEWS」カテゴリ、大きな見出しテキスト、情報源を配置しています。
+        右セクションは黒背景に薄い模様を入れ、力強いボクサーの画像を配置し、視覚的な引きつけを狙っています。
+        左右セクションの間には鮮やかな黄色の縦線が引かれ、デザインのアクセントとなるとともに、左右の区切りを明確にしています。
+        全体として、情報の明確さと視覚的なインパクトを両立させ、速報性を強調するレイアウトです。
+        フォントは 'Inter' を使用し、力強さと読みやすさを確保しています。
+        */
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #ccc; /* To visualize the banner boundaries */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Center banner vertically for preview */
+        }
+
+        #banner-container {
+            width: 1010px;
+            height: 1012px;
+            display: flex;
+            overflow: hidden; /* Ensure content stays within bounds */
+            position: relative; /* Establish positioning context */
+            background-color: #f8f8f8; /* Fallback background */
+        }
+
+        #left-section {
+            width: 50%; /* Adjust width slightly if needed */
+            height: 100%;
+            background-color: #f8f8f8; /* Light grey background */
+            padding: 5vh 4vw; /* Padding using vh/vw */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Pushes logo up and source down */
+            box-sizing: border-box; /* Include padding and border in width/height */
+            border-right: 4px solid #FFFF00; /* Yellow divider line */
+            position: relative;
+            z-index: 10; /* Ensure text is above images */
+        }
+
+        #logo-container {
+            /* Container for the logo */
+            margin-bottom: 5vh; /* Space below logo */
+        }
+
+        #dazn-logo {
+            width: 12vw; /* Logo size relative to viewport width */
+            height: auto; /* Maintain aspect ratio */
+            object-fit: contain;
+            display: block; /* Ensure it takes block space */
+        }
+
+        #text-content {
+           /* Container for middle text elements */
+           flex-grow: 1; /* Allow this section to take available space */
+           display: flex;
+           flex-direction: column;
+           justify-content: center; /* Center text vertically within its space */
+           margin-top: -5vh; /* Adjust vertical position slightly */
+        }
+
+        #breaking-news-container {
+            margin-bottom: 2vh; /* Space below breaking news */
+            align-self: flex-start; /* Align to the left */
+        }
+
+        #breaking-news-text {
+            display: inline-block; /* Fit content width */
+            background-color: #FFFF00; /* Yellow background */
+            color: black;
+            font-size: 1.8vh; /* Font size relative to viewport height */
+            font-weight: 900; /* Extra bold */
+            padding: 0.6vh 1.2vw; /* Padding relative to viewport */
+            border-radius: 5px; /* Rounded corners */
+            text-transform: uppercase; /* Uppercase text */
+            letter-spacing: 0.5px;
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        #main-headline {
+            color: black;
+            font-size: 7vh; /* Large font size relative to viewport height */
+            font-weight: 900; /* Extra bold */
+            line-height: 1.1; /* Adjust line spacing */
+            white-space: normal; /* Allow text wrapping */
+            margin-bottom: 3vh; /* Space below headline */
+        }
+
+        #source-container {
+             /* Container for the source text */
+             margin-top: auto; /* Pushes to the bottom */
+        }
+
+        #source-text {
+            color: #333; /* Dark grey color */
+            font-size: 1.8vh; /* Font size relative to viewport height */
+            font-weight: 400; /* Regular weight */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        #right-section {
+            width: 50%; /* Adjust width slightly if needed */
+            height: 100%;
+            position: relative; /* For positioning the image */
+            background-color: #000000; /* Black background */
+        }
+
+        #background-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the section */
+            z-index: 1; /* Behind the boxer image */
+            opacity: 0.3; /* Make pattern subtle */
+        }
+
+        #boxer-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the section, may crop */
+            object-position: center top; /* Adjust focus of the image */
+            z-index: 2; /* Above the background pattern */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="banner-container">
+        <div id="left-section">
+            <div id="logo-container">
+                <img id="dazn-logo" src="https://placehold.co/150x80/000000/FFFFFF?text=DAZN+Logo" alt="DAZN Logo Black on White">
+            </div>
+            <div id="text-content">
+                <div id="breaking-news-container">
+                    <div id="breaking-news-text">BREAKING NEWS</div>
+                </div>
+                <div id="main-headline">
+                    Anthony Joshua has agreed & signed his next fight. More details to follow.
+                </div>
+            </div>
+            <div id="source-container">
+                <div id="source-text">
+                    Source: Matchroom Boxing
+                </div>
+            </div>
+        </div>
+        <div id="right-section">
+             <!-- Background pattern image -->
+             <!-- <img id="background-pattern" src="https://placehold.co/505x1012/000000/333333?text=Subtle+Wavy+Pattern" alt="Abstract subtle wavy pattern background in dark grey on black"> -->
+             <!-- Main image of the boxer -->
+            <img id="boxer-image" src="https://placehold.co/505x1012/CCCCCC/000000?text=Anthony+Joshua+Portrait" alt="Portrait of boxer Anthony Joshua looking intensely at the camera, fist raised slightly">
+        </div>
+    </div>
+</body>
+</html>

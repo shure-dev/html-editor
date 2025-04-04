@@ -3,36 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Editor</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>HTML画像エディター</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>HTML Editor</h1>
+        <header>
+            <h1>HTML画像エディター</h1>
+            <p>HTMLファイルをアップロードして、画像をクリックして置き換えることができます</p>
+        </header>
         
-        <div class="upload-section">
-            <h2>1. HTMLファイルをアップロード</h2>
-            <input type="file" id="html-upload" accept=".html,.htm">
-            <p>または、サンプルファイルを使用:</p>
-            <div class="sample-links">
-                <a href="sample.html" target="_blank">サンプルHTML (通常画像)</a> | 
-                <a href="sample-backgrounds.html" target="_blank">サンプルHTML (背景画像)</a>
-                <p>※サンプルを右クリックして「名前を付けて保存」し、それをアップロードしてください。</p>
+        <main>
+            <div class="upload-area">
+                <div class="file-upload">
+                    <label for="html-upload" class="upload-button">HTMLファイルをアップロード</label>
+                    <input type="file" id="html-upload" accept=".html, .htm">
+                </div>
             </div>
-        </div>
+            
+            <div class="preview-container">
+                <div id="html-preview"></div>
+            </div>
+            
+            <div class="download-area">
+                <button id="download-btn" class="download-button">画像としてダウンロード</button>
+            </div>
+        </main>
         
-        <div class="editor-section" id="editor-section" style="display: none;">
-            <h2>2. 画像を編集</h2>
-            <div id="html-preview"></div>
-        </div>
-        
-        <div class="download-section" id="download-section" style="display: none;">
-            <h2>3. 画像としてダウンロード</h2>
-            <button id="download-btn">ダウンロード</button>
+        <div id="image-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>画像をアップロード</h2>
+                <div class="image-upload-area">
+                    <div class="file-upload">
+                        <label for="image-upload" class="upload-button">画像を選択</label>
+                        <input type="file" id="image-upload" accept="image/*">
+                    </div>
+                    <p id="selected-file-name"></p>
+                </div>
+                <div class="preview-image-container">
+                    <img id="preview-image" src="" alt="プレビュー">
+                </div>
+                <button id="replace-button" class="upload-button" disabled>置き換える</button>
+            </div>
         </div>
     </div>
     
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html> 

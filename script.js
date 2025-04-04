@@ -4,6 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorSection = document.getElementById('editor-section');
     const downloadSection = document.getElementById('download-section');
     const downloadBtn = document.getElementById('download-btn');
+    const imageModal = document.getElementById('image-modal');
+    const closeButton = document.querySelector('.close-button');
+    const imageUploadInput = document.getElementById('image-upload');
+    const previewImage = document.getElementById('preview-image');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const replaceButton = document.getElementById('replace-button');
+
+    // Current target image element
+    let currentImageElement = null;
+    let currentImageFile = null;
+    let currentImageDimensions = { width: null, height: null };
 
     // HTML ファイルのアップロード処理
     htmlUploadInput.addEventListener('change', (event) => {
@@ -14,24 +25,198 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (e) => {
             const htmlContent = e.target.result;
             
-            // HTMLコンテンツをプレビューエリアに表示
-            htmlPreview.innerHTML = htmlContent;
+            // Parse HTML content
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
             
-            // バナーコンテナのサイズを検出して適用
-            detectAndApplyBannerSize();
+            // Make all images clickable
+            const images = doc.querySelectorAll('img');
+            images.forEach(img => {
+                // Wrap image in a container to maintain its original dimensions
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'clickable-img';
+                
+                // Get the original image's computed styles
+                const parent = img.parentNode;
+                parent.insertBefore(imgContainer, img);
+                imgContainer.appendChild(img);
+                
+                // Add click event to open image upload modal
+                imgContainer.addEventListener('click', () => {
+                    openImageModal(img);
+                });
+            });
             
-            // 画像要素を特定して編集ボタンを追加
-            prepareImagesForEditing();
+            // Display the modified HTML
+            htmlPreview.innerHTML = '';
+            htmlPreview.appendChild(doc.documentElement);
             
-            // 背景画像を持つ要素を特定して編集ボタンを追加
-            prepareBackgroundImagesForEditing();
+            // Add event listeners to the newly added elements
+            addClickListeners();
             
-            // エディタと保存セクションを表示
-            editorSection.style.display = 'block';
-            downloadSection.style.display = 'block';
+            // ダウンロードボタンを有効化
+            downloadBtn.disabled = false;
         };
         reader.readAsText(file);
     });
+
+    // Add click event listeners to images in preview
+    function addClickListeners() {
+        const clickableImages = htmlPreview.querySelectorAll('.clickable-img');
+        clickableImages.forEach(container => {
+            container.addEventListener('click', () => {
+                const img = container.querySelector('img');
+                openImageModal(img);
+            });
+        });
+    }
+
+    // Extract dimensions from placeholder URL
+    function extractDimensionsFromSrc(src) {
+        // Match dimensions like 500x300 or 505x1012 in URLs
+        const dimensionMatch = src.match(/(\d+)x(\d+)/);
+        if (dimensionMatch && dimensionMatch.length >= 3) {
+            return {
+                width: parseInt(dimensionMatch[1]),
+                height: parseInt(dimensionMatch[2])
+            };
+        }
+        return null;
+    }
+
+    // Open image upload modal
+    function openImageModal(imageElement) {
+        currentImageElement = imageElement;
+        imageModal.style.display = 'block';
+        
+        // Reset the form
+        imageUploadInput.value = '';
+        previewImage.src = '';
+        selectedFileName.textContent = '';
+        replaceButton.disabled = true;
+        
+        // Extract dimensions from placeholder URL
+        currentImageDimensions = extractDimensionsFromSrc(imageElement.src) || {
+            width: imageElement.width || null,
+            height: imageElement.height || null
+        };
+        
+        // Show information about dimensions
+        if (currentImageDimensions.width && currentImageDimensions.height) {
+            selectedFileName.textContent = `元の画像サイズ: ${currentImageDimensions.width}x${currentImageDimensions.height}`;
+        }
+        
+        // Show current image in preview
+        if (imageElement.src) {
+            previewImage.src = imageElement.src;
+        }
+    }
+
+    // Close modal
+    closeButton.addEventListener('click', () => {
+        imageModal.style.display = 'none';
+        currentImageElement = null;
+        currentImageFile = null;
+        currentImageDimensions = { width: null, height: null };
+    });
+
+    // Preview selected image
+    imageUploadInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        currentImageFile = file;
+        
+        // Show file name and original dimensions if available
+        let dimensions = '';
+        if (currentImageDimensions.width && currentImageDimensions.height) {
+            dimensions = ` (${currentImageDimensions.width}x${currentImageDimensions.height}に調整されます)`;
+        }
+        selectedFileName.textContent = `${file.name}${dimensions}`;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            replaceButton.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Replace image button click
+    replaceButton.addEventListener('click', () => {
+        if (!currentImageElement || !currentImageFile) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Create a new image to get the natural dimensions of the uploaded file
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                // Apply the image with original dimensions preserved
+                currentImageElement.src = e.target.result;
+                
+                // If we have dimensions from the placeholder, apply them
+                if (currentImageDimensions.width && currentImageDimensions.height) {
+                    currentImageElement.style.width = `${currentImageDimensions.width}px`;
+                    currentImageElement.style.height = `${currentImageDimensions.height}px`;
+                    currentImageElement.style.objectFit = 'cover';
+                }
+                
+                // Close the modal
+                imageModal.style.display = 'none';
+                
+                // Reset current selections
+                currentImageElement = null;
+                currentImageFile = null;
+                currentImageDimensions = { width: null, height: null };
+            };
+            tempImg.src = e.target.result;
+        };
+        reader.readAsDataURL(currentImageFile);
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target === imageModal) {
+            imageModal.style.display = 'none';
+            currentImageElement = null;
+            currentImageFile = null;
+            currentImageDimensions = { width: null, height: null };
+        }
+    });
+
+    // 画像の読み込み完了を待つ関数
+    function waitForImagesLoaded() {
+        return new Promise(resolve => {
+            const images = htmlPreview.querySelectorAll('img');
+            let loadedCount = 0;
+            
+            // 画像が存在しない場合はすぐに解決
+            if (images.length === 0) {
+                resolve();
+                return;
+            }
+            
+            // 各画像の読み込みを監視
+            images.forEach(img => {
+                if (img.complete) {
+                    loadedCount++;
+                    if (loadedCount === images.length) resolve();
+                } else {
+                    img.addEventListener('load', () => {
+                        loadedCount++;
+                        if (loadedCount === images.length) resolve();
+                    });
+                    
+                    // エラー時も次に進めるために処理
+                    img.addEventListener('error', () => {
+                        console.error('画像の読み込みに失敗しました:', img.src);
+                        loadedCount++;
+                        if (loadedCount === images.length) resolve();
+                    });
+                }
+            });
+        });
+    }
 
     // バナーコンテナのサイズを検出して適用する関数
     function detectAndApplyBannerSize() {
@@ -98,12 +283,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     const file = event.target.files[0];
                     if (!file) return;
                     
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        img.src = e.target.result;
-                        document.body.removeChild(fileInput);
-                    };
-                    reader.readAsDataURL(file);
+                    // 画像サイズチェック
+                    checkImageDimensions(file).then(dimensions => {
+                        if (dimensions.width > 5000 || dimensions.height > 5000) {
+                            alert('画像のサイズが大きすぎます（5000px超）。表示に問題が生じる可能性があります。');
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            // 元の画像サイズを記録
+                            const originalWidth = img.width;
+                            const originalHeight = img.height;
+                            const originalStyle = img.getAttribute('style') || '';
+                            const originalWidthAttr = img.getAttribute('width');
+                            const originalHeightAttr = img.getAttribute('height');
+                            
+                            // 新しい画像のsrcを設定
+                            img.src = e.target.result;
+                            
+                            // 元のサイズを適用
+                            if (originalWidthAttr) img.setAttribute('width', originalWidthAttr);
+                            if (originalHeightAttr) img.setAttribute('height', originalHeightAttr);
+                            img.style = originalStyle;
+                            if (!originalWidthAttr && !originalHeightAttr && !originalStyle.includes('width') && !originalStyle.includes('height')) {
+                                img.width = originalWidth;
+                                img.height = originalHeight;
+                            }
+                            
+                            document.body.removeChild(fileInput);
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 });
                 
                 fileInput.click();
@@ -149,7 +359,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         const reader = new FileReader();
                         reader.onload = (e) => {
+                            // 元の背景画像のスタイル情報を保存
+                            const originalBgSize = computedStyle.backgroundSize;
+                            const originalBgPosition = computedStyle.backgroundPosition;
+                            const originalBgRepeat = computedStyle.backgroundRepeat;
+                            
+                            // 新しい背景画像を設定
                             element.style.backgroundImage = `url(${e.target.result})`;
+                            
+                            // 元のスタイル設定を適用
+                            element.style.backgroundSize = originalBgSize;
+                            element.style.backgroundPosition = originalBgPosition;
+                            element.style.backgroundRepeat = originalBgRepeat;
+                            
                             document.body.removeChild(fileInput);
                         };
                         reader.readAsDataURL(file);
@@ -161,29 +383,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 画像のサイズをチェックする関数
+    function checkImageDimensions(file) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = function() {
+                URL.revokeObjectURL(img.src); // クリーンアップ
+                resolve({ width: this.width, height: this.height });
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
     // 画像としてダウンロードする処理
     downloadBtn.addEventListener('click', () => {
-        // 編集ボタンを非表示にしてから画像をキャプチャ
-        const editButtons = htmlPreview.querySelectorAll('.image-upload-btn');
-        editButtons.forEach(btn => btn.style.display = 'none');
+        if (!htmlPreview.innerHTML) {
+            alert('HTMLファイルを先にアップロードしてください');
+            return;
+        }
         
-        // サイズ情報を非表示
-        const sizeInfo = document.querySelector('.size-info');
-        if (sizeInfo) sizeInfo.style.display = 'none';
+        // クリッカブルな要素を一時的に非表示
+        const clickableElements = htmlPreview.querySelectorAll('.clickable-img');
+        clickableElements.forEach(el => {
+            el.classList.add('capturing');
+        });
         
-        html2canvas(htmlPreview).then(canvas => {
-            // 編集ボタンを再表示
-            editButtons.forEach(btn => btn.style.display = 'block');
+        html2canvas(htmlPreview, {
+            allowTaint: true,
+            useCORS: true,
+            scale: 2  // 高解像度でキャプチャ
+        }).then(canvas => {
+            // 非表示にした要素を元に戻す
+            clickableElements.forEach(el => {
+                el.classList.remove('capturing');
+            });
             
-            // サイズ情報を再表示
-            if (sizeInfo) sizeInfo.style.display = 'block';
-            
-            // キャンバスを画像に変換してダウンロード
+            // 画像としてダウンロード
             const image = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = image;
-            link.download = 'edited-html.png';
+            link.download = 'html-image.png';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+        }).catch(error => {
+            console.error('画像生成エラー:', error);
+            alert('画像の生成に失敗しました。しばらくしてからもう一度お試しください。');
+            
+            // 非表示にした要素を元に戻す
+            clickableElements.forEach(el => {
+                el.classList.remove('capturing');
+            });
         });
     });
+    
+    // 初期状態ではダウンロードボタンを無効に
+    downloadBtn.disabled = true;
 }); 
