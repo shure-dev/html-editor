@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>HTML Editor</h1>
+        
+        <div class="upload-section">
+            <h2>1. HTMLファイルをアップロード</h2>
+            <input type="file" id="html-upload" accept=".html,.htm">
+            <p>または、サンプルファイルを使用:</p>
+            <div class="sample-links">
+                <a href="sample.html" target="_blank">サンプルHTML (通常画像)</a> | 
+                <a href="sample-backgrounds.html" target="_blank">サンプルHTML (背景画像)</a>
+                <p>※サンプルを右クリックして「名前を付けて保存」し、それをアップロードしてください。</p>
+            </div>
+        </div>
+        
+        <div class="editor-section" id="editor-section" style="display: none;">
+            <h2>2. 画像を編集</h2>
+            <div id="html-preview"></div>
+        </div>
+        
+        <div class="download-section" id="download-section" style="display: none;">
+            <h2>3. 画像としてダウンロード</h2>
+            <button id="download-btn">ダウンロード</button>
+        </div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
